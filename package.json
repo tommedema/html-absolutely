@@ -32,6 +32,8 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
-    "encodeurl": "^1.0.1"
+    "css-absolutely": "^1.2.0",
+    "encodeurl": "^1.0.1",
+    "url-is-protoless": "^1.0.0"
   }
 }

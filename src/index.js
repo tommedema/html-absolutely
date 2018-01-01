@@ -1,6 +1,8 @@
 const cheerio = require('cheerio')
 const url = require('url')
 const encodeUrl = require('encodeurl')
+const isProtoless = require('url-is-protoless')
+const absCss = require('css-absolutely')
 
 const cheerify = html => cheerio.load(html, {
   decodeEntities: true,
@@ -31,7 +33,7 @@ function absolutely (html, resolveTo) {
     if (attr) {
       const val = el.attribs[attr]
       const encoded = encodeUrl(val)
-      if (isProtolessPath(encoded)) {
+      if (isProtoless(encoded)) {
         const resolved = url.resolve(resolveTo, encoded)
         $(el).attr(attr, resolved)
       }
@@ -42,7 +44,7 @@ function absolutely (html, resolveTo) {
   $('[style]')
   .each((i, el) => {
     if (el.attribs.style && el.attribs.style.trim()) {
-      $(el).attr('style', rebaseStylesheetUrls(el.attribs.style, resolveTo))
+      $(el).attr('style', absCss(el.attribs.style, resolveTo))
     }
   })
   
@@ -50,46 +52,12 @@ function absolutely (html, resolveTo) {
   $('style')
   .each((i, el) => {
     const $el = $(el)
-    $el.html(rebaseStylesheetUrls($el.html(), resolveTo))
+    $el.html(absCss($el.html(), resolveTo))
   })
     
   return $.html()
 }
 
-// FIXME: move this to separate lib that is used by both `html-absolutely` and `html-embed-stylesheets`
-function isProtolessPath (path) {
-  const parsed = url.parse(path)
-  return !parsed.protocol && parsed.pathname
-}
-
-// FIXME: move this to a separate lib that is used by both `html-absolutely` and `html-embed-stylesheets`
-function rebaseStylesheetUrls (stylesheet, resolveTo) {
-  // const replaceRegex = /url\(\s?(&quot;){1}([^\1]+)(&quot;){1}\s?\)/gi
-  const urlRegex = /url\(\s?["']?([^)'"]+)["']?\s?\).*/i
-  
-  // stylesheet = stylesheet.replace(replaceRegex, '"$2"')
-  
-  let index = 0
-  while((found = urlRegex.exec(stylesheet.substring(index))) !== null)
-  {
-    const rawSrc = found[1]
-    const encodedSrc = encodeUrl(rawSrc.trim())
-    if (isProtolessPath(encodedSrc)) {
-      const resolvedSrc = url.resolve(resolveTo, encodedSrc)
-      const foundIndex = found.input.indexOf(rawSrc)
-      
-      stylesheet =
-        stylesheet.slice(0, index + foundIndex) +
-        resolvedSrc +
-        stylesheet.slice(index + foundIndex + rawSrc.length)
-        
-      index += resolvedSrc.length - rawSrc.length
-    }
-    index += found.index + rawSrc.length
-  }
-  
-  return stylesheet
-}
 
 module.exports = absolutely
 
