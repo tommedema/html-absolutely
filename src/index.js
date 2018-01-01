@@ -2,6 +2,12 @@ const cheerio = require('cheerio')
 const url = require('url')
 const encodeUrl = require('encodeurl')
 
+const cheerify = html => cheerio.load(html, {
+  decodeEntities: true,
+  lowerCaseTags: true,
+  lowerCaseAttributeNames: true
+})
+
 /**
  * Insert html and receive back html with all relative urls resolved to an absolute url.
  * Ignores empty urls (e.g. `href=""`).
@@ -14,10 +20,7 @@ const encodeUrl = require('encodeurl')
  * console.log(html)
  */
 function absolutely (html, resolveTo) {
-  const $ = cheerio.load(html, {
-    lowerCaseTags: true,
-    lowerCaseAttributeNames: true
-  })
+  const $ = cheerify(html)
 
   // hrefs and srcs
   $('[href],[src]')
@@ -50,7 +53,7 @@ function absolutely (html, resolveTo) {
     $el.html(rebaseStylesheetUrls($el.html(), resolveTo))
   })
     
-  return $.html({ decodeEntities: false })
+  return $.html()
 }
 
 // FIXME: move this to separate lib that is used by both `html-absolutely` and `html-embed-stylesheets`
@@ -61,7 +64,10 @@ function isProtolessPath (path) {
 
 // FIXME: move this to a separate lib that is used by both `html-absolutely` and `html-embed-stylesheets`
 function rebaseStylesheetUrls (stylesheet, resolveTo) {
+  // const replaceRegex = /url\(\s?(&quot;){1}([^\1]+)(&quot;){1}\s?\)/gi
   const urlRegex = /url\(\s?["']?([^)'"]+)["']?\s?\).*/i
+  
+  // stylesheet = stylesheet.replace(replaceRegex, '"$2"')
   
   let index = 0
   while((found = urlRegex.exec(stylesheet.substring(index))) !== null)
@@ -86,3 +92,5 @@ function rebaseStylesheetUrls (stylesheet, resolveTo) {
 }
 
 module.exports = absolutely
+
+module.exports.cheerify = cheerify

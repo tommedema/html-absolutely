@@ -5,7 +5,8 @@ require('loud-rejection/register')
 const abs = require('../src')
 const baseUrl = 'http://example.com/'
 const cheerio = require('cheerio')
-const cheerify = html => cheerio.load(html).html({ decodeEntities: false })
+const cheerify = html => abs.cheerify(html).html()
+const wrapBody = body => `<html><head></head><body>${body}</body></html>`
 
 describe('module', () => {
   it('should export a function', function () {
@@ -113,6 +114,23 @@ describe('styles', () => {
     const expected = cheerify(`<div style="background-image: url('${baseUrl}assets/icon.png');"></div>`)
     const html = abs(input, baseUrl)
     html.should.eql(expected)
+  })
+  
+  it('should decode and reencode args such that urls inside inline css with encoded entities are resolved', () => {
+    const input = `<div style="background-image: url(&quot;assets/icon.png&quot;);"></div>`
+    const expected = `<html><head></head><body><div style="background-image: url(&quot;${baseUrl}assets/icon.png&quot;);"></div></body></html>`
+    const html = abs(input, baseUrl)
+    html.should.eql(expected)
+  })
+  
+  it('should work with encoded absolute inline css sources', () => {
+    const input = `\
+<a data-label="game:198979" href="https://madisonvideogame.itch.io/madison-demo" \
+class="game_thumb" data-action="game_grid" \
+data-background_image="https://img.itch.zone/aW1hZ2UvMTk4OTc5LzkzMDY5MS5qcGc=/300x240%23c/rU2dY9.jpg" \
+style="background-image:url(&quot;https://img.itch.zone/aW1hZ2UvMTk4OTc5LzkzMDY5MS5qcGc=/300x240%23c/rU2dY9.jpg&quot;);"></a>`
+    const html = abs(input, baseUrl)
+    html.should.eql(wrapBody(input))
   })
   
   it('should resolve urls inside style tags', () => {
