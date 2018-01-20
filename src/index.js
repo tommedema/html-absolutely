@@ -3,6 +3,7 @@ const url = require('url')
 const encodeUrl = require('encodeurl')
 const isProtoless = require('url-is-protoless')
 const absCss = require('css-absolutely')
+const srcset = require('srcset')
 
 const cheerify = html => cheerio.load(html, {
   decodeEntities: true,
@@ -40,6 +41,14 @@ function absolutely (html, resolveTo) {
     }
   })
   
+  //srcset attr
+  $('[srcset]')
+  .each((i, el) => {
+    if (el.attribs.srcset && el.attribs.srcset.trim()) {
+      $(el).attr('srcset', absSrcSet(el.attribs.srcset, resolveTo))
+    }
+  })
+  
   //style attr
   $('[style]')
   .each((i, el) => {
@@ -58,6 +67,15 @@ function absolutely (html, resolveTo) {
   return $.html()
 }
 
+function absSrcSet(srcSetStr, resolveTo) {
+  const parsed = srcset.parse(srcSetStr)
+  for (let entry of parsed) {
+    if (entry.url && isProtoless(entry.url)) {
+      entry.url = url.resolve(resolveTo, entry.url)
+    }
+  }
+  return srcset.stringify(parsed)
+}
 
 module.exports = absolutely
 

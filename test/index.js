@@ -97,6 +97,34 @@ describe('sources', () => {
     const html = abs(input, baseUrl)
     html.should.eql(expected)
   })
+  
+  it('should resolve img element with responsive relative image uris', () => {
+    const input = `
+      <img alt="The Breakfast Combo"
+       src="banner.jpg"
+       srcset="banner-HD.jpg 2x, banner-phone.jpg 100w, banner-phone-HD.jpg 100w 2x">
+    `
+    const expected = cheerify(`
+      <img alt="The Breakfast Combo"
+       src="${baseUrl}banner.jpg"
+       srcset="${baseUrl}banner-HD.jpg 2x, ${baseUrl}banner-phone.jpg 100w, ${baseUrl}banner-phone-HD.jpg 100w 2x">
+    `)
+    
+    const html = abs(input, baseUrl)
+    html.should.eql(expected)
+  })
+  
+  it('should resolve source element with responsive relative image uris', () => {
+    const input = `
+      <source srcset="/img/test.jpg 1x, /img/test_retina.jpg 2x">
+    `
+    const expected = cheerify(`
+      <source srcset="${baseUrl}img/test.jpg 1x, ${baseUrl}img/test_retina.jpg 2x">
+    `)
+    
+    const html = abs(input, baseUrl)
+    html.should.eql(expected)
+  })
 })
 
 describe('hrefs', () => {
