@@ -125,6 +125,13 @@ describe('sources', () => {
     const html = abs(input, baseUrl)
     html.should.eql(expected)
   })
+  
+  it('should resolve relative video poster image urls', () => {
+    const input = `<video controls poster="./img/test.gif">`
+    const expected = cheerify(`<video controls poster="${baseUrl}img/test.gif">`)
+    const html = abs(input, baseUrl)
+    html.should.eql(expected)
+  })
 })
 
 describe('hrefs', () => {

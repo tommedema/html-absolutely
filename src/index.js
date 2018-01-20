@@ -49,6 +49,17 @@ function absolutely (html, resolveTo) {
     }
   })
   
+  //video posters
+  $('video[poster]')
+  .each((i, el) => {
+    if (el.attribs.poster) {
+      const trimmed = el.attribs.poster.trim()
+      if (trimmed && isProtoless(trimmed)) {
+        $(el).attr('poster', url.resolve(resolveTo, trimmed))
+      }
+    }
+  })
+  
   //style attr
   $('[style]')
   .each((i, el) => {
